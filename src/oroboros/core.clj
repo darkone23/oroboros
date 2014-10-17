@@ -18,17 +18,21 @@
 (defn default? [f]
   (re-matches (re-pattern (str default-name ".*")) f))
 
+(defn sort-configs
+  [confs xs]
+  (let [sortfn (fn [f]
+                 (let [name (first (split-ext f))]
+                   (if (default? f) -1 (.indexOf confs name))))]
+    (sort-by sortfn xs)))
+
 (defn find-config-files
   "return the paths to configs named by the directory"
   [dir & confs]
   (let [exts ["yml" "yaml" "json"]
         confs (cons default-name confs)
-        names (into #{} (for [conf confs ext exts] (str conf "." ext)))
-        sortfn (fn [f]
-                 (let [name (first (split-ext f))]
-                   (if (default? f) -1 (.indexOf confs name))))]
+        names (into #{} (for [conf confs ext exts] (str conf "." ext)))]
     (for [[root _ files] (-> dir expand-home iterate-dir)
-          config (sort-by sortfn (clojure.set/intersection files names))] 
+          config (sort-configs confs (clojure.set/intersection files names))]
       (file root config))))
 
 (defn config-to-cursor
@@ -45,10 +49,8 @@
 
 (defn load-config
   "Load a template-map config file from disk"
-  [dir conf]
-  (let [config* (-> conf slurp parse-string template-map)
-        config (into {} config*)
-        cursor (config-to-cursor dir conf)]
+  [conf & cursor]
+  (let [config (-> conf slurp parse-string template-map)]
     (if (empty? cursor) config
         (assoc-in nil cursor config))))
 
@@ -59,9 +61,9 @@
     (apply merge-with deep-merge vals)
     (last vals)))
 
-(defn circle-config
+(defn config-circle
   "Load self referential configs from a directory, named by confs..."
   [dir & confs]
   (let [files (apply find-config-files dir confs)
-        configs (map (partial load-config dir) files)]
-    (into {} (template-map (apply deep-merge configs)))))
+        configs (for [f files] (apply load-config f (config-to-cursor dir f)))]
+    (template-map (apply deep-merge configs))))

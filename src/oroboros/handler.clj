@@ -1,5 +1,6 @@
 (ns oroboros.handler
   (:require [oroboros.core :refer [circle template-map]]
+            [ring.util.response :as resp]
             [clojure.data.json :as json]
             [compojure.core :refer :all]
             [compojure.handler :as handler]
@@ -12,7 +13,7 @@
   (get-in coll (map keyword cursor)))
 
 (defroutes app-routes
-  (GET "/" [] "Hello World")
+  (GET "/" [] (resp/resource-response "index.html" {:root "public"}))
   (GET "/q" {{:keys [var config]} :params}
     (let [var (if var (clojure.string/split var #"\.") [])
           config (if config (circle directory config) (circle directory))

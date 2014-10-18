@@ -1,8 +1,11 @@
 # oroboros
 
-[![oroboros](http://i.imgur.com/RL7v1G0.jpg)](#)
+<img src="http://i.imgur.com/RL7v1G0.jpg"
+ alt="oroboros img" title="oroboros" align="right" />
 
-*oroboros is a configuration server that uses itself as the templating context of its string values*
+> "They are centers of a mighty force, figures pregnant with an awful power…”
+> 
+> oroboros is a configuration server that uses itself as the templating context of its string values
 
 you can use it to enable service oriented systems that fetch remote configuration over http
 
@@ -38,7 +41,7 @@ check out the [examples](examples) for more details
 
 ### build
 
-building requires java7+ and leiningen
+building oroboros requires java7+ and leiningen
 
 ~~~sh
 lein do clean, ring uberjar
@@ -46,14 +49,36 @@ lein do clean, ring uberjar
 
 ### run
 
-using fig:
+Once built, there are a few different ways to run oroboros in your environment.
+
+using [fig](http://www.fig.sh/) for development:
 
 ~~~sh
 fig up
 ~~~
 
-or just run the jar:
+using [docker](https://docker.io) for deployment:
 
 ~~~sh
-(cd examples; java -jar ../target/oroboros-0.1.0-SNAPSHOT-standalone.jar)
+# TODO: publish to docker registry so this is just `docker run $OPTS egghead/oroboros`
+CONFIGS=$PWD/examples
+docker build -t oroboros .
+docker run -v $CONFIGS:/etc/oroboros/configs -p 3000:3000 oroboros java -jar /etc/oroboros/o.jar
 ~~~
+
+using [lein](http://leiningen.org/):
+
+~~~sh
+lein trampoline ring server-headless
+~~~
+
+or just run the jar in some config dir:
+
+~~~sh
+cd examples
+java -jar ../target/oroboros-0.1.0-SNAPSHOT-standalone.jar
+~~~
+
+Once you have the server started, play around with editing the files in the examples directory or creating your own.
+
+

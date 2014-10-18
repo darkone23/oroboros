@@ -6,8 +6,8 @@
                  [org.clojure/data.json "0.2.5"]
                  [me.raynes/fs "1.4.6"]
                  [circleci/clj-yaml "0.5.3"]
-                 [stencil "0.3.5"]
-                 [matross/mapstache "0.3.1-SNAPSHOT"]
+                 [eggsby/stencil "0.3.4-eggsby"]
+                 [matross/mapstache "0.3.1"]
                  [compojure "1.1.9"]]
   :plugins [[lein-ring "0.8.12"]]
   :ring {:handler oroboros.handler/app}

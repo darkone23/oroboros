@@ -1,0 +1,4 @@
+cat: tom
+mouse: jerry
+name: '{{ cat }} & {{ mouse }}'
+best: '{{ favorite }}'

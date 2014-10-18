@@ -61,7 +61,7 @@
     (apply merge-with deep-merge vals)
     (last vals)))
 
-(defn config-circle
+(defn circle
   "Load self referential configs from a directory, named by confs..."
   [dir & confs]
   (let [files (apply find-config-files dir confs)

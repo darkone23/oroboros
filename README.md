@@ -1,11 +1,13 @@
 # oroboros
 
-<img src="http://i.imgur.com/RL7v1G0.jpg"
+<img src="http://i.imgur.com/qZl5BBA.jpg"
  alt="oroboros img" title="oroboros" align="right" />
 
-> "They are centers of a mighty force, figures pregnant with an awful power…”
+> "In the age-old image of the uroboros lies the thought of devouring oneself and turning oneself into a circulatory process."
 > 
-> oroboros is a configuration server that uses itself as the templating context of its string values
+> "They are centers of a mighty force, figures pregnant with an awful power…”
+
+*oroboros is a configuration server that uses itself as the templating context of its string values*
 
 you can use it to enable service oriented systems that fetch remote configuration over http
 
@@ -61,9 +63,8 @@ using [docker](https://docker.io) for deployment:
 
 ~~~sh
 # TODO: publish to docker registry so this is just `docker run $OPTS egghead/oroboros`
-CONFIGS=$PWD/examples
 docker build -t oroboros .
-docker run -v $CONFIGS:/etc/oroboros/configs -p 3000:3000 oroboros java -jar /etc/oroboros/o.jar
+docker run -v $PWD/examples:/etc/oroboros/configs -p 3000:3000 oroboros java -jar /etc/oroboros/o.jar
 ~~~
 
 using [lein](http://leiningen.org/):
@@ -79,6 +80,4 @@ cd examples
 java -jar ../target/oroboros-0.1.0-SNAPSHOT-standalone.jar
 ~~~
 
-Once you have the server started, play around with editing the files in the examples directory or creating your own.
-
-
+Once you have the server started, play around with editing the configs, or create some of your own.

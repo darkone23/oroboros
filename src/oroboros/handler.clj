@@ -5,7 +5,7 @@
             [compojure.handler :as handler]
             [compojure.route :as route]))
 
-(def directory "./examples")
+(def directory ".")
 
 (defn get-in-string-cursor
   [coll cursor]
@@ -15,7 +15,7 @@
   (GET "/" [] "Hello World")
   (GET "/q" {{:keys [var config]} :params}
     (let [var (if var (clojure.string/split var #"\.") [])
-          config (if (circle directory config) (circle directory))
+          config (if config (circle directory config) (circle directory))
           config (if (empty? var) config (get-in-string-cursor config var))]
       (when config
         {:status 200

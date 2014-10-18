@@ -1,0 +1,7 @@
+oroboros:
+  build: .
+  command: java -jar /etc/oroboros/o.jar
+  volumes:
+    - examples:/etc/oroboros/configs
+  ports:
+    - 3000:3000

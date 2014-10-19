@@ -76,9 +76,7 @@ fig up
 using [docker](https://docker.io) for deployment:
 
 ~~~sh
-# TODO: publish to docker registry so this is just `docker run $OPTS egghead/oroboros`
-docker build -t oroboros .
-docker run -v $PWD/examples:/etc/oroboros/configs -p 3000:3000 oroboros java -jar /etc/oroboros/o.jar
+docker run -v $PWD/examples:/etc/oroboros/configs -p 8080:80 egghead/oroboros
 ~~~
 
 or just run the jar in some config dir:

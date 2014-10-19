@@ -1,0 +1,21 @@
+{
+  "name": "oroboros",
+  "version": "0.0.0",
+  "homepage": "https://github.com/eggsby/oroboros",
+  "authors": [
+    "Thomas Omans <thomas.omans@gmail.com>"
+  ],
+  "description": "bower web ui",
+  "main": "resources/public/js/oroboros.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "resources/public/vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "pretty-json": "warfares/pretty-json",
+    "bootstrap": "~3.2.0"
+  }
+}

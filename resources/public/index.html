@@ -4,8 +4,33 @@
         <meta charset="utf-8" />
         <title>oroboros</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="/vendor/pretty-json/css/pretty-json.css"></link>
+	<link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap.css"></link>
 	<link rel="stylesheet" href="/css/oroboros.css"></link>
     </head>
     <body>
+      <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">oroboros config server</a>
+          </div>
+        </div>
+      </div>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-sm-3 col-md-2 sidebar">
+            <ul class="nav nav-sidebar">
+              <li class="active"><a href="#">config</a></li>
+            </ul>
+          </div>
+          <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          </div>
+        </div>
+      </div>
+      <script src="/vendor/pretty-json/libs/jquery-1.11.1.min.js"></script>
+      <script src="/vendor/pretty-json/libs/underscore-min.js"></script>
+      <script src="/vendor/pretty-json/libs/backbone-min.js"></script>
+      <script src="/vendor/pretty-json/build/pretty-json-min.js"></script>
+      <script src="/js/oroboros.js"></script>
     </body>
 </html>

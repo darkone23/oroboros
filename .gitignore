@@ -2,6 +2,7 @@
 /lib
 /classes
 /checkouts
+/resources/public/vendor
 pom.xml
 pom.xml.asc
 *.jar

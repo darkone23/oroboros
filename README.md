@@ -55,15 +55,23 @@ a simple web ui is included for exploring configuration
 
 ![ui](http://i.imgur.com/dlRTXUD.png)
 
-### build
+### running
+
+if you have [docker](https://docker.io) installed::
+
+~~~sh
+docker run -v $PWD/examples:/etc/oroboros/configs -p 8080:80 egghead/oroboros
+~~~
+
+Or just [grab a copy of the jar](https://github.com/eggsby/oroboros/releases) and run it in your config directory.
+
+### development
 
 building oroboros requires java7+ and leiningen
 
 ~~~sh
 lein do clean, ring uberjar
 ~~~
-
-### run
 
 Once built, there are a few different ways to run oroboros in your environment.
 
@@ -73,17 +81,10 @@ using [fig](http://www.fig.sh/) for development:
 fig up
 ~~~
 
-using [docker](https://docker.io) for deployment:
+using [lein](http://leiningen.org/):
 
 ~~~sh
-docker run -v $PWD/examples:/etc/oroboros/configs -p 8080:80 egghead/oroboros
-~~~
-
-or just run the jar in some config dir:
-
-~~~sh
-cd examples
-java -jar ../target/oroboros-0.1.0-SNAPSHOT-standalone.jar
+lein trampoline ring server-headless
 ~~~
 
 Once you have the server started, play around with editing the configs, or create some of your own.

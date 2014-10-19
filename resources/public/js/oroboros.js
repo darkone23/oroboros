@@ -1,6 +1,20 @@
 $(function() {
   "use strict";
 
+  function autoLink(text) {
+    var entities = twttr.txt.extractEntitiesWithIndices(text, { extractUrlsWithoutProtocol: true });
+    text = twttr.txt.autoLinkEntities(text, entities, { targetBlank: true });
+    // special case for twitter text missing links on port nums
+    var missedPort = text.match(/\:\d+$/)
+    if (missedPort) {
+      var port = missedPort[0], a = $(text)
+      a.attr("href", a.attr("href") + port);
+      a.text(a.text() + port);
+      text = a.get(0).outerHTML;
+    }
+    return text;
+  }
+
   var $main = $ (".main");
   
   function load(config) {
@@ -10,6 +24,10 @@ $(function() {
         el: $main.empty(),
         data: data
       }).expandAll();
+      $main.find(".string").each(function() {
+        var text = $(this).text()
+        $(this).html(autoLink(text));
+      });
     });
   }
 

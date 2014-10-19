@@ -35,6 +35,18 @@
           config (sort-configs confs (clojure.set/intersection files names))]
       (file root config))))
 
+(defn find-config-names
+  "find the names of configs in the directory"
+  [dir]
+  (let [exts #{".yml" ".yaml" ".json"}]
+    (into
+     #{}
+     (for [[_ _ files] (-> dir expand-home iterate-dir)
+           config files
+           :when (let [[name ext] (split-ext config)]
+                   (and (exts ext) (not= name default-name)))]
+       (first (split-ext config))))))
+
 (defn config-to-cursor
   "~/dir, ~/dir/foo/bar/baz.txt => ['foo' 'bar']"
   [dir conf]

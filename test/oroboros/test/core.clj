@@ -14,6 +14,9 @@
       (is (= {:x 23 :sub {:y "23"}}
              (assoc (template-map {:x 23}) :sub m)))))
 
+  (testing "can find config names in a directory"
+    (is (= #{"tom" "jerry"} (find-config-names "./examples/simple"))))
+
   (testing "can find config files in a directory"
     (is (= [(fs/file "./examples/simple/config.yaml")]
            (find-config-files "./examples/simple")))

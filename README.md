@@ -36,10 +36,24 @@ And fetch the rendered json config over http:
 
 ~~~sh
 curl $oroboros/q?config=tom | python -m json.tool
-# {"cat":"tom","mouse":"jerry","name":"tom & jerry","best":"tom"}
+~~~
+
+~~~json
+{
+  "cat": "tom",
+  "mouse": "jerry",
+  "name": "tom & jerry",
+  "best": "tom"
+}
 ~~~
 
 check out the [examples](examples) for more details
+
+### web ui
+
+a simple web ui is included for exploring configuration
+
+![ui](http://i.imgur.com/dlRTXUD.png)
 
 ### build
 
@@ -65,12 +79,6 @@ using [docker](https://docker.io) for deployment:
 # TODO: publish to docker registry so this is just `docker run $OPTS egghead/oroboros`
 docker build -t oroboros .
 docker run -v $PWD/examples:/etc/oroboros/configs -p 3000:3000 oroboros java -jar /etc/oroboros/o.jar
-~~~
-
-using [lein](http://leiningen.org/):
-
-~~~sh
-lein trampoline ring server-headless
 ~~~
 
 or just run the jar in some config dir:

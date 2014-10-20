@@ -8,50 +8,60 @@ $(function() {
     var missedPort = text.match(/\:\d+$/)
     if (missedPort) {
       var port = missedPort[0], a = $(text)
-      a.attr("href", a.attr("href") + port);
-      a.text(a.text() + port);
-      text = a.get(0).outerHTML;
+      if (a.size()) {
+        a.attr("href", a.attr("href") + port);
+        a.text(a.text() + port);
+        text = a.get(0).outerHTML;
+      }
     }
     return text;
   }
 
   var $main = $ (".main");
-  
-  function load(config) {
-    config = config || "config";
-    $.get("/q?config="+config).then(function(data){
-      new PrettyJSON.view.Node({
-        el: $main.empty(),
-        data: data
-      }).expandAll();
-      $main.find(".string").each(function() {
-        var text = $(this).text()
-        $(this).html(autoLink(text));
+  var $nav = $ (".nav-sidebar");
+
+  var App = Backbone.Router.extend({
+    routes: {
+      "": "home",
+      ":config": "config"
+    },
+    home: function() {
+      Backbone.history.loadUrl("config");
+    },
+    config: function(config) {
+      $.get("/q?config="+config).then(function(data){
+        var $lis = $nav.find("li");
+        $lis.removeClass("active");
+        var $match = $lis.filter(function() {
+          return $(this).find("a").text() === config;
+        });
+        $match.addClass("active");
+        new PrettyJSON.view.Node({
+          el: $main.empty(),
+          data: data
+        }).expandAll();
+        $main.find(".string").each(function() {
+          var text = $(this).text()
+          $(this).html(autoLink(text));
+        });
       });
+    }
+  });
+
+  function init() {
+    // initialize nav sidebar
+    $.get("/configs").then(function(data){
+      $(data).each(function(i, el) {
+        var li = $("<li>"), a = $("<a>");
+        a.attr("href", "#" + el);
+        li.append(a.text(el));
+        $nav.append(li);
+      });
+      var app = new App();
+      Backbone.history.start();
     });
   }
 
-  function setActive(li, a) {
-    return function(event) {
-      $nav.find("li").removeClass("active");
-      li.addClass("active");
-      load(a.text());
-    };
-  }
-
-  var $nav = $(".nav-sidebar"),
-      li = $nav.find("li"), a = $nav.find("a");
-  li.on("click", setActive(li, a));
-
-  $.get("/configs").then(function(data){
-    $(data).each(function(i, el) {
-      var li = $("<li>"), a = $("<a>");
-      li.append(a.text(el));
-      li.on("click", setActive(li, a));
-      $nav.append(li);
-      });
-  });
-
-  load();
+  init();
 
 });

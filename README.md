@@ -67,9 +67,10 @@ Or just [grab a copy of the jar](https://github.com/eggsby/oroboros/releases) an
 
 ### development
 
-building oroboros requires java7+ and leiningen
+building oroboros requires java7+, leiningen, & bower
 
 ~~~sh
+bower install
 lein do clean, ring uberjar
 ~~~
 

@@ -40,7 +40,7 @@
   [dir]
   (let [exts #{".yml" ".yaml" ".json"}]
     (into
-     #{}
+     (sorted-set)
      (for [[_ _ files] (-> dir expand-home iterate-dir)
            config files
            :when (let [[name ext] (split-ext config)]

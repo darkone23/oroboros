@@ -75,7 +75,8 @@
 
 (defn circle
   "Load self referential configs from a directory, named by confs..."
-  [dir & confs]
-  (let [files (apply find-config-files dir confs)
+  ([] (template-map {}))
+  ([dir & confs]
+   (let [files (apply find-config-files dir confs)
         configs (for [f files] (apply load-config f (config-to-cursor dir f)))]
-    (template-map (apply deep-merge configs))))
+     (template-map (apply deep-merge configs)))))

@@ -7,15 +7,15 @@
 > 
 > "They are centers of a mighty force, figures pregnant with an awful power…”
 
-*oroboros is a configuration server that uses itself as the templating context of its string values*
+*oroboros is a configuration engine that uses itself as the templating context of its string values*
 
-you can use it to enable service oriented systems that fetch remote configuration over http
-
-all configuration is stored in a user defined file hierarchy
+Available as a library or service, you can use it to enable dynamic configuration across your systems
 
 ## usage
 
-configs use themselves as their own templating context, so we can do things like:
+Using the web service, all configuration is stored in a user defined file hierarchy
+
+Configs use themselves as their own templating context, so we can do things like:
 
 ~~~yml
 # examples/simple/config.yaml
@@ -47,17 +47,31 @@ curl $oroboros/q?config=tom | python -m json.tool
 }
 ~~~
 
-check out the [examples](examples) for more details
-
 ### web ui
 
-a simple web ui is included for exploring configuration
+A simple web ui is included for exploring configuration
 
 ![ui](http://i.imgur.com/dlRTXUD.png)
 
+### library
+
+You can use oroboros as a library for jvm langs, here, in clojure:
+
+~~~clj
+(use 'oroboros.core)
+
+(circle "examples/simple")
+;; => {:cat "tom", :mouse "jerry", :name "tom & jerry", :best "{{favorite}}"}
+
+(assoc (circle) :x "{{y}}" :y 23)
+;; => {:x "23" :y 23}
+~~~
+
+The same api is exposed [for java & friends](examples/Example.java).
+
 ### running
 
-if you have [docker](https://docker.io) installed::
+If you have [docker](https://docker.io) installed::
 
 ~~~sh
 docker run -v $PWD/examples:/etc/oroboros/configs -p 8080:80 egghead/oroboros
@@ -65,9 +79,11 @@ docker run -v $PWD/examples:/etc/oroboros/configs -p 8080:80 egghead/oroboros
 
 Or just [grab a copy of the jar](https://github.com/eggsby/oroboros/releases) and run it in your config directory.
 
+Check out the [examples](examples) for more details
+
 ### development
 
-building oroboros requires java7+, leiningen, & bower
+Building oroboros requires java7+, leiningen, & bower
 
 ~~~sh
 bower install
@@ -76,13 +92,13 @@ lein do clean, ring uberjar
 
 Once built, there are a few different ways to run oroboros in your environment.
 
-using [fig](http://www.fig.sh/) for development:
+Using [fig](http://www.fig.sh/) for development:
 
 ~~~sh
 fig up
 ~~~
 
-using [lein](http://leiningen.org/):
+Using [lein](http://leiningen.org/):
 
 ~~~sh
 lein trampoline ring server-headless

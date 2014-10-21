@@ -22,28 +22,26 @@ Configs use themselves as their own templating context, so we can do things like
 cat: 'tom'
 mouse: 'jerry'
 name: '{{ cat }} & {{ mouse }}'
-best: '{{ favorite }}'
 ~~~
 
 By placing a named config next to the default `config.yaml`, we can provide context specific overrides
 
 ~~~yml
-# examples/simple/tom.yaml
-favorite: '{{ cat }}'
+# examples/simple/jerry.yaml
+name: '{{ mouse }} & {{ cat }}'
 ~~~
 
 And fetch the rendered json config over http:
 
 ~~~sh
-curl $oroboros/q?config=tom | python -m json.tool
+curl $oroboros/q?config=jerry | python -m json.tool
 ~~~
 
 ~~~json
 {
   "cat": "tom",
   "mouse": "jerry",
-  "name": "tom & jerry",
-  "best": "tom"
+  "name": "jerry & tom"
 }
 ~~~
 
@@ -61,7 +59,7 @@ You can use oroboros as a library for jvm langs, here, in clojure:
 (use 'oroboros.core)
 
 (circle "examples/simple")
-;; => {:cat "tom", :mouse "jerry", :name "tom & jerry", :best "{{favorite}}"}
+;; => {:cat "tom", :mouse "jerry", :name "tom & jerry"}
 
 (assoc (circle) :x "{{y}}" :y 23)
 ;; => {:x "23" :y 23}
@@ -86,8 +84,7 @@ Check out the [examples](examples) for more details
 Building oroboros requires java7+, leiningen, & bower
 
 ~~~sh
-bower install
-lein do clean, ring uberjar
+bower install && lein do clean, ring uberjar
 ~~~
 
 Once built, there are a few different ways to run oroboros in your environment.

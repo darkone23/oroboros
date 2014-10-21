@@ -15,31 +15,23 @@
              (assoc (template-map {:x 23}) :sub m)))))
 
   (testing "can find config names in a directory"
-    (is (= #{"tom" "jerry"} (find-config-names "./examples/simple"))))
+    (is (= #{"jerry"} (find-config-names "./examples/simple"))))
 
   (testing "can find config files in a directory"
     (is (= [(fs/file "./examples/simple/config.yaml")]
            (find-config-files "./examples/simple")))
 
     (is (= [(fs/file "./examples/simple/config.yaml")
-            (fs/file "./examples/simple/tom.yaml")]
-           (find-config-files "./examples/simple" "tom")))
-
-    (is (= [(fs/file "./examples/simple/config.yaml")
-            (fs/file "./examples/simple/tom.yaml")
             (fs/file "./examples/simple/jerry.yaml")]
-           (find-config-files "./examples/simple" "tom" "jerry"))))
+           (find-config-files "./examples/simple" "foobar" "jerry"))))
 
   (testing "can load config files as template maps"
-    (let [config (load-config "./examples/simple/config.yaml")]
-      (is (= {:cat "tom", :mouse "jerry",
-              :name "tom & jerry", :best "{{favorite}}"} config))
-      (is (= {:cat "tom", :mouse "jerry",
-              :name "tom & jerry", :best "jerry"} (assoc config :best "{{ mouse }}")))))
+    (let [config (circle "./examples/simple" "jerry")]
+      (is (= {:cat "tom", :mouse "jerry", :name "jerry & tom"} config))))
 
   (testing "can place loaded configs into a larger structure"
     (is (= {:examples {:simple {:cat "tom", :mouse "jerry",
-                                :name "tom & jerry", :best "{{favorite}}"}}}
+                                :name "tom & jerry"}}}
            (load-config "./examples/simple/config.yaml" :examples :simple))))
 
   (testing "can turn directories into cursors"

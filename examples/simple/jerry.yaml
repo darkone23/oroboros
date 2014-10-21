@@ -1,1 +1,1 @@
-favorite: '{{ mouse }}'
+name: '{{ mouse }} & {{ cat }}'

@@ -2,6 +2,8 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :min-lein-version "2.0.0"
+  :source-paths ["src/clj"]
+  :java-source-paths ["src/jvm"]
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/data.json "0.2.5"]
                  [me.raynes/fs "1.4.6"]

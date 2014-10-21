@@ -10,11 +10,17 @@ public class Config {
     private static IFn stringify;
     private static IFn circlefn;
     private static IFn templatefn;
+    private static IFn hashmap;
 
     static {
         stringify = loadClojureFn("clojure.walk", "stringify-keys");
+        hashmap = loadClojureFn("clojure.core", "hash-map");
         circlefn = loadClojureFn("oroboros.core", "circle");
         templatefn = loadClojureFn("oroboros.core", "template-map");
+    }
+
+    public static Associative circle() {
+        return (Associative) templatefn.invoke(hashmap.invoke());
     }
 
     public static Associative circle(String directory) {

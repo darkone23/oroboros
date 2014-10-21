@@ -4,6 +4,11 @@
 
 (deftest java-test
   (testing "works as a java library"
+    (let [config (Config/circle)
+          config* (.assoc config "x" "{{y}}")
+          config** (.assoc config* "y" "x")]
+      (is (= {"x" "{{y}}"} config*))
+      (is (= {"x" "x" "y" "x"} config**)))
     (let [config (Config/circle "examples/simple")]
       (is (= {"cat" "tom", "mouse" "jerry",
               "name" "tom & jerry",

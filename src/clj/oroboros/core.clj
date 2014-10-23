@@ -13,6 +13,11 @@
   "Special map that uses itself for the templating context of its string values"
   (partial mapstache (string-renderer mustache)))
 
+
+(def ^:dynamic *oroboros-opts* {:keywords true})
+(defn set-java-opts! []
+  (alter-var-root #'oroboros.core/*oroboros-opts* (constantly {:keywords false})))
+
 (def default-name "config")
 
 (defn default? [f]
@@ -57,12 +62,14 @@
                 (apply str (rest file-part))
                 (re-pattern java.io.File/separator))]
     (if (= file-part "") []
-      (map keyword splits))))
+      (if (:keywords *oroboros-opts*)
+        (map keyword splits)
+        splits))))
 
 (defn load-config
   "Load a template-map config file from disk"
   [conf & cursor]
-  (let [config (-> conf slurp parse-string template-map)]
+  (let [config (-> conf slurp (parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
     (if (empty? cursor) config
         (assoc-in nil cursor config))))
 

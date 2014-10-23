@@ -42,7 +42,9 @@ public class Config {
     private static IFn loadClojureFn(String namespace, String name) {
         try {
             clojure.lang.Compiler.eval(RT.readString("(require '" + namespace + ")"));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.out.println("Failed to load " + namespace + "/" + name + ":" + e.getMessage());
+        }
         return (IFn) RT.var(namespace, name).deref();
     }
 }

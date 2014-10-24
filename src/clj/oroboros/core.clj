@@ -1,36 +1,54 @@
 (ns oroboros.core
-  (:require [matross.mapstache :refer [string-renderer mapstache]]
-            [me.raynes.fs :refer [file iterate-dir normalized parent expand-home split-ext]]
+  (:require [matross.mapstache :as mapstache]
+            [me.raynes.fs :as fs]
             [clj-http.client :as client]
             [clojure.data.json :as json]
-            [clj-yaml.core :refer [parse-string]]
-            [stencil.core :refer [render-string]]))
-
-(defn mustache
-  "Use stencil for our mustache impl"
-  [str vars]
-  (render-string str vars :missing-var-fn :ignore))
-
-(def template-map
-  "Special map that uses itself for the templating context of its string values"
-  (partial mapstache (string-renderer mustache)))
-
-(defn from-json [] '...)
-
-(defn to-json [] '...)
-
-(defn write [] '...)
+            [clj-yaml.core :as yaml]
+            [stencil.core :as stencil]))
 
 (declare ^:dynamic *oroboros-opts*)
 (def default-name "config")
 
+(defn mustache
+  "Use stencil for our mustache impl"
+  [str vars]
+  (stencil/render-string str vars :missing-var-fn :ignore))
+
+(def template-map
+  (partial mapstache/mapstache (mapstache/string-renderer mustache)))
+
+(defn config []
+  "Special map that uses itself for the templating context of its string values"
+  (template-map {}))
+
 (defn default? [f]
   (re-matches (re-pattern (str default-name ".*")) f))
+
+(defn from-json [str]
+  (let [keyfn (if (:keywords *oroboros-opts*) keyword identity)]
+    (template-map (json/read-str str :key-fn keyfn))))
+
+(defn to-json [conf] (json/write-str conf))
+
+(defn write-config [conf path]
+  (let [path (fs/expand-home path)
+        path (if (fs/directory? path) (fs/file path "config.json") (fs/file path))]
+    (fs/mkdirs (fs/parent path))
+    (spit path (to-json conf))))
+
+(defn fetch-config
+  ([url]
+    (fetch-config url default-name))
+  ([url config]
+    (let [url (str "http://" url "/q")
+          opts {:query-params {:config config}}
+          res (client/get url opts)]
+      (from-json (:body res)))))
 
 (defn sort-configs
   [confs xs]
   (let [sortfn (fn [f]
-                 (let [name (first (split-ext f))]
+                 (let [name (first (fs/split-ext f))]
                    (if (default? f) -1 (.indexOf confs name))))]
     (sort-by sortfn xs)))
 
@@ -40,9 +58,9 @@
   (let [exts ["yml" "yaml" "json"]
         confs (cons default-name confs)
         names (into #{} (for [conf confs ext exts] (str conf "." ext)))]
-    (for [[root _ files] (-> dir expand-home iterate-dir)
+    (for [[root _ files] (-> dir fs/expand-home fs/iterate-dir)
           config (sort-configs confs (clojure.set/intersection files names))]
-      (file root config))))
+      (fs/file root config))))
 
 (defn find-names
   "find the names of configs in the directory"
@@ -50,17 +68,17 @@
   (let [exts #{".yml" ".yaml" ".json"}]
     (into
      (sorted-set)
-     (for [[_ _ files] (-> dir expand-home iterate-dir)
+     (for [[_ _ files] (-> dir fs/expand-home fs/iterate-dir)
            config files
-           :when (let [[name ext] (split-ext config)]
+           :when (let [[name ext] (fs/split-ext config)]
                    (and (exts ext) (not= name default-name)))]
-       (first (split-ext config))))))
+       (first (fs/split-ext config))))))
 
 (defn config-to-cursor
   "~/dir, ~/dir/foo/bar/baz.txt => ['foo' 'bar']"
   [dir conf]
-  (let [dir (-> dir expand-home normalized .getAbsolutePath)
-        conf (-> conf expand-home normalized parent .getAbsolutePath)
+  (let [dir (-> dir fs/expand-home fs/normalized .getAbsolutePath)
+        conf (-> conf fs/expand-home fs/normalized fs/parent .getAbsolutePath)
         file-part (subs conf (count dir))
         splits (clojure.string/split
                 (apply str (rest file-part))
@@ -73,7 +91,7 @@
 (defn load-config*
   "Load a template-map config file from disk"
   [conf & cursor]
-  (let [config (-> conf slurp (parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
+  (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
     (if (empty? cursor) config
         (assoc-in nil cursor config))))
 
@@ -90,8 +108,6 @@
   (if (every? map? vals)
     (apply merge-with deep-merge vals)
     (last vals)))
-
-(defn config [] (template-map {}))
 
 (defn load-config
   "Load self referential configs from a directory, named by confs..."

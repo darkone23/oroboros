@@ -63,4 +63,12 @@ public class ConfigTest {
         assertTrue(new Config().set("bool", true).getBool("bool") instanceof Boolean);
     }
 
+    @Test
+    public void testJson() {
+        Config config = new Config().set("cat", "tom").set("mouse", "jerry").set("name", "{{cat}} & {{mouse}}");
+        String json = "{\"name\":\"{{cat}} & {{mouse}}\",\"mouse\":\"jerry\",\"cat\":\"tom\"}";
+        assertEquals(Config.fromJson(json), config);
+        assertEquals(config.toJson(), Config.fromJson(json).toJson());
+    }
+
 }

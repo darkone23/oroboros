@@ -9,18 +9,18 @@ import java.util.List;
 
 public class Config {
 
-    final Associative config;
+    final Associative __config;
 
     public Config() {
         this(Config.empty());
     }
 
     private Config(Associative config) {
-        this.config = config;
+        this.__config = config;
     }
 
     public Object get(Object... keys) {
-        return Config.getIn(config, Arrays.asList(keys));
+        return Config.getIn(__config, Arrays.asList(keys));
     }
 
     public String getStr(Object... keys) {
@@ -40,11 +40,11 @@ public class Config {
     }
 
     public Config set(Object key, Object val) {
-        return new Config(config.assoc(key, val));
+        return new Config(__config.assoc(key, val));
     }
 
     public Config set(List keys, Object val) {
-        return new Config(Config.assocIn(config, keys, val));
+        return new Config(Config.assocIn(__config, keys, val));
     }
 
     public boolean has(Object... keys) {
@@ -52,30 +52,46 @@ public class Config {
     }
 
     public Config overlay(Config other) {
-        return new Config(Config.overlay(config, other.config));
+        return new Config(Config.overlay(__config, other.__config));
+    }
+
+    public void write(String path) {
+        Config.write(this, path);
     }
 
     public boolean equals(Object other) {
-        return other instanceof Config && config.equals(((Config) other).config);
+        return other instanceof Config && __config.equals(((Config) other).__config);
     }
 
     public String toString() {
-        return config.toString();
+        return __config.toString();
+    }
+
+    public String toJson() {
+        return Config.toJson(__config);
     }
 
     // static methods below
 
     private static IFn getfn;
     private static IFn setfn;
-    private static IFn loadfn;
     private static IFn configfn;
+    private static IFn fromjsonfn;
+    private static IFn tojsonfn;
+    private static IFn loadfn;
+    private static IFn writefn;
+    private static IFn fetchfn;
     private static IFn overlayfn;
 
     static {
         getfn = clojureFn("clojure.core", "get-in");
         setfn = clojureFn("clojure.core", "assoc-in");
-        loadfn = clojureFn("oroboros.core", "load-config");
         configfn = clojureFn("oroboros.core", "config");
+        fromjsonfn = clojureFn("oroboros.core", "from-json");
+        tojsonfn = clojureFn("oroboros.core", "to-json");
+        loadfn = clojureFn("oroboros.core", "load-config");
+        writefn = clojureFn("oroboros.core", "write-config");
+        fetchfn = clojureFn("oroboros.core", "fetch-config");
         overlayfn = clojureFn("oroboros.core", "overlay");
         clojureFn("oroboros.core", "set-java-opts!").invoke();
     }
@@ -90,6 +106,26 @@ public class Config {
 
     public static Config create() {
         return new Config();
+    }
+
+    public static Config fromJson(String json) {
+        return new Config((Associative) fromjsonfn.invoke(json));
+    }
+
+    public static String toJson(Associative config) {
+        return (String) tojsonfn.invoke(config);
+    }
+
+    public static Config fetch(String url) {
+        return new Config((Associative) fetchfn.invoke(url));
+    }
+
+    public static Config fetch(String url, String config) {
+        return new Config((Associative) fetchfn.invoke(url, config));
+    }
+
+    public static void write(Config config, String path) {
+        writefn.invoke(config, path);
     }
 
     private static Associative empty() {

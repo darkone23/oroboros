@@ -2,7 +2,6 @@ package oroboros.test;
 
 import org.junit.*;
 import oroboros.Config;
-import oroboros.Circle;
 
 import java.util.Arrays;
 
@@ -12,24 +11,22 @@ public class ConfigTest {
 
     @Test
     public void testInMemory() {
-        Circle config = Config.empty();
-
-        config = config.set("x", "{{y}}");
-        assertTrue(config.get("x").equals("{{y}}"));
-
-        config = config.set("y", "templated");
-        assertTrue(config.get("x").equals("templated"));
+        Config config = new Config();
+        config = config.set("name", "{{mouse}}");
+        assertEquals("{{mouse}}", config.get("name"));
+        config = config.set("mouse", "jerry");
+        assertEquals("jerry", config.get("name"));
     }
 
     @Test
     public void testFromDisk() {
-        Circle config = Config.load("./examples");
-        assertTrue(config.get("simple", "name").equals("tom & jerry"));
+        Config config = Config.load("./examples");
+        assertEquals("tom & jerry", config.get("simple", "name"));
     }
 
     @Test
     public void testOverride() {
-        Circle config = Config.load("./examples", "jerry");
+        Config config = Config.load("./examples", "jerry");
         assertEquals("jerry & tom", config.get("simple", "name"));
 
         config = config.set(Arrays.asList("simple", "cat"), "friends");
@@ -37,27 +34,34 @@ public class ConfigTest {
     }
 
     @Test
+    public void testOverlay() {
+        Config config = new Config().set("cat", "{{name}}");
+        Config other = new Config().set("name", "tom");
+        Config mixed = config.overlay(other);
+        assertEquals("tom", mixed.get("cat"));
+        assertFalse(mixed.has("name"));
+    }
+
+    @Test
+    public void testEquals() {
+        Config a = new Config().set("a", "{{ b }}").set("b", "a");
+        Config b = new Config().set("b", "{{ a }}").set("a", "a");
+        assertEquals(a, b);
+    }
+
+    @Test
     public void testHas() {
-        Circle config = Config.load("./examples");
+        Config config = Config.load("./examples");
         assertTrue(config.has("simple", "cat"));
         assertFalse(config.has("wow", "this", "key"));
     }
 
     @Test
     public void testGetTyped() {
-        assertTrue(Config.empty().set("str", "str").getStr("str") instanceof String);
-        assertTrue(Config.empty().set("int", 1).getInt("int") instanceof Integer);
-        assertTrue(Config.empty().set("long", 100L).getLong("long") instanceof Long);
-        assertTrue(Config.empty().set("bool", true).getBool("bool") instanceof Boolean);
-    }
-
-    @Test
-    public void testOverlay() {
-        Circle config = Config.empty().set("x", "{{ y }}");
-        Circle other = Config.empty().set("y", "replaced");
-        Circle mixed = config.overlay(other);
-        assertEquals("replaced", mixed.get("x"));
-        assertFalse(mixed.has("y"));
+        assertTrue(new Config().set("str", "str").getStr("str") instanceof String);
+        assertTrue(new Config().set("int", 1).getInt("int") instanceof Integer);
+        assertTrue(new Config().set("long", 100L).getLong("long") instanceof Long);
+        assertTrue(new Config().set("bool", true).getBool("bool") instanceof Boolean);
     }
 
 }

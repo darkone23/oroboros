@@ -1,15 +1,71 @@
 package oroboros;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import clojure.lang.Associative;
 import clojure.lang.IFn;
 import clojure.lang.RT;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Config {
 
-    private static IFn keyfn;
+    final Associative circle;
+
+    public Config() {
+        this(Config.empty());
+    }
+
+    private Config(Associative circle) {
+        this.circle = circle;
+    }
+
+    public Object get(Object... keys) {
+        return Config.getIn(circle, Arrays.asList(keys));
+    }
+
+    public String getStr(Object... keys) {
+        return (String) get(keys);
+    }
+
+    public Integer getInt(Object... keys) {
+        return (Integer) get(keys);
+    }
+
+    public Long getLong(Object... keys) {
+        return (Long) get(keys);
+    }
+
+    public Boolean getBool(Object... keys) {
+        return (Boolean) get(keys);
+    }
+
+    public Config set(Object key, Object val) {
+        return new Config(circle.assoc(key, val));
+    }
+
+    public Config set(List keys, Object val) {
+        return new Config(Config.assocIn(circle, keys, val));
+    }
+
+    public boolean has(Object... keys) {
+        return get(keys) != null;
+    }
+
+    public Config overlay(Config other) {
+        return new Config(Config.overlay(circle, other.circle));
+    }
+
+    public boolean equals(Object other) {
+        return other instanceof Config && circle.equals(((Config) other).circle);
+    }
+
+    public String toString() {
+        return circle.toString();
+    }
+
+
+    // static methods below
+
     private static IFn circlefn;
     private static IFn overlayfn;
     private static IFn templatefn;
@@ -18,49 +74,46 @@ public class Config {
     private static IFn setfn;
 
     static {
-        keyfn = loadClojureFn("clojure.core", "keyword");
-        hashmap = loadClojureFn("clojure.core", "hash-map");
-        getfn = loadClojureFn("clojure.core", "get-in");
-        setfn = loadClojureFn("clojure.core", "assoc-in");
-        circlefn = loadClojureFn("oroboros.core", "circle");
-        overlayfn = loadClojureFn("oroboros.core", "overlay");
-        templatefn = loadClojureFn("oroboros.core", "template-map");
-        loadClojureFn("oroboros.core", "set-java-opts!").invoke();
+        hashmap = clojureFn("clojure.core", "hash-map");
+        getfn = clojureFn("clojure.core", "get-in");
+        setfn = clojureFn("clojure.core", "assoc-in");
+        circlefn = clojureFn("oroboros.core", "circle");
+        overlayfn = clojureFn("oroboros.core", "overlay");
+        templatefn = clojureFn("oroboros.core", "template-map");
+        clojureFn("oroboros.core", "set-java-opts!").invoke();
     }
 
-    public static Circle empty() {
-        return circle(templatefn.invoke(hashmap.invoke()));
+    public static Config load(String directory) {
+        return Config.load(directory, null);
     }
 
-    public static Circle load(String directory) {
-        return load(directory, null);
+    public static Config load(String directory, String config) {
+        return (directory == null) ?
+                new Config((Associative) circlefn.invoke(directory)) :
+                new Config((Associative) circlefn.invoke(directory, config));
     }
 
-    public static Circle load(String directory, String config) {
-        if (directory == null) {
-            return circle(circlefn.invoke(directory));
-        } else {
-            return circle(circlefn.invoke(directory, config));
-        }
+    public static Config create() {
+        return new Config();
     }
 
-    public static Object getIn(Associative obj, List keys) {
+    private static Associative empty() {
+        return (Associative) templatefn.invoke(hashmap.invoke());
+    }
+
+    private static Object getIn(Associative obj, List keys) {
         return getfn.invoke(obj, keys);
     }
 
-    public static Associative assocIn(Associative obj, List keys, Object val) {
+    private static Associative assocIn(Associative obj, List keys, Object val) {
         return (Associative) setfn.invoke(obj, keys, val);
     }
 
-    public static Circle overlay(Associative a, Associative b) {
-        return circle(overlayfn.invoke(a, b));
+    private static Associative overlay(Associative a, Associative b) {
+        return (Associative) overlayfn.invoke(a, b);
     }
 
-    private static Circle circle(Object assoc) {
-        return new Circle((Associative) assoc);
-    }
-
-    private static IFn loadClojureFn(String namespace, String name) {
+    private static IFn clojureFn(String namespace, String name) {
         try {
             Object require = RT.readString("(require '" + namespace + ")");
             clojure.lang.Compiler.eval(require);
@@ -69,4 +122,5 @@ public class Config {
         }
         return (IFn) RT.var(namespace, name).deref();
     }
+
 }

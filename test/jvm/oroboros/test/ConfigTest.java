@@ -45,11 +45,19 @@ public class ConfigTest {
 
     @Test
     public void testGetTyped() {
-        Circle config = Config.load("./examples/advanced");
         assertTrue(Config.empty().set("str", "str").getStr("str") instanceof String);
         assertTrue(Config.empty().set("int", 1).getInt("int") instanceof Integer);
         assertTrue(Config.empty().set("long", 100L).getLong("long") instanceof Long);
         assertTrue(Config.empty().set("bool", true).getBool("bool") instanceof Boolean);
+    }
+
+    @Test
+    public void testOverlay() {
+        Circle config = Config.empty().set("x", "{{ y }}");
+        Circle other = Config.empty().set("y", "replaced");
+        Circle mixed = config.overlay(other);
+        assertEquals("replaced", mixed.get("x"));
+        assertFalse(mixed.has("y"));
     }
 
 }

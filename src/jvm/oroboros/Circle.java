@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Circle {
-    private final Associative circle;
+    final Associative circle;
 
     public Circle(Associative circle) {
         this.circle = circle;
@@ -42,6 +42,10 @@ public class Circle {
 
     public boolean has(Object... keys) {
         return get(keys) != null;
+    }
+
+    public Circle overlay(Circle other) {
+        return Config.overlay(circle, other.circle);
     }
 
     public boolean equals(Object other) {

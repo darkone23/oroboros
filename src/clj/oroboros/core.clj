@@ -73,6 +73,13 @@
     (if (empty? cursor) config
         (assoc-in nil cursor config))))
 
+(defn overlay
+  "Render template values in another context"
+  [self other]
+  (let [k (gensym)
+        m {k self}]
+    (get (merge (template-map other) m) k)))
+
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
   [& vals]

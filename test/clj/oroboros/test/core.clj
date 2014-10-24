@@ -14,6 +14,11 @@
       (is (= {:x 23 :sub {:y "23"}}
              (assoc (template-map {:x 23}) :sub m)))))
 
+  (testing "can overlay one context onto another"
+    (let [x {:foo {:bar "{{ x }}"}}
+          y {:x "baz"}]
+      (is (= {:foo {:bar "baz"}} (overlay x y)))))
+
   (testing "can find config names in a directory"
     (is (= #{"jerry"} (find-config-names "./examples/simple"))))
 

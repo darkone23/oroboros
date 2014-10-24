@@ -11,6 +11,7 @@ public class Config {
 
     private static IFn keyfn;
     private static IFn circlefn;
+    private static IFn overlayfn;
     private static IFn templatefn;
     private static IFn hashmap;
     private static IFn getfn;
@@ -22,6 +23,7 @@ public class Config {
         getfn = loadClojureFn("clojure.core", "get-in");
         setfn = loadClojureFn("clojure.core", "assoc-in");
         circlefn = loadClojureFn("oroboros.core", "circle");
+        overlayfn = loadClojureFn("oroboros.core", "overlay");
         templatefn = loadClojureFn("oroboros.core", "template-map");
         loadClojureFn("oroboros.core", "set-java-opts!").invoke();
     }
@@ -48,6 +50,10 @@ public class Config {
 
     public static Associative assocIn(Associative obj, List keys, Object val) {
         return (Associative) setfn.invoke(obj, keys, val);
+    }
+
+    public static Circle overlay(Associative a, Associative b) {
+        return circle(overlayfn.invoke(a, b));
     }
 
     private static Circle circle(Object assoc) {

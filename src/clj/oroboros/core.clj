@@ -1,6 +1,8 @@
 (ns oroboros.core
   (:require [matross.mapstache :refer [string-renderer mapstache]]
             [me.raynes.fs :refer [file iterate-dir normalized parent expand-home split-ext]]
+            [clj-http.client :as client]
+            [clojure.data.json :as json]
             [clj-yaml.core :refer [parse-string]]
             [stencil.core :refer [render-string]]))
 
@@ -13,11 +15,13 @@
   "Special map that uses itself for the templating context of its string values"
   (partial mapstache (string-renderer mustache)))
 
+(defn from-json [] '...)
 
-(def ^:dynamic *oroboros-opts* {:keywords true})
-(defn set-java-opts! []
-  (alter-var-root #'oroboros.core/*oroboros-opts* (constantly {:keywords false})))
+(defn to-json [] '...)
 
+(defn write [] '...)
+
+(declare ^:dynamic *oroboros-opts*)
 (def default-name "config")
 
 (defn default? [f]
@@ -30,7 +34,7 @@
                    (if (default? f) -1 (.indexOf confs name))))]
     (sort-by sortfn xs)))
 
-(defn find-config-files
+(defn find-configs
   "return the paths to configs named by the directory"
   [dir & confs]
   (let [exts ["yml" "yaml" "json"]
@@ -40,7 +44,7 @@
           config (sort-configs confs (clojure.set/intersection files names))]
       (file root config))))
 
-(defn find-config-names
+(defn find-names
   "find the names of configs in the directory"
   [dir]
   (let [exts #{".yml" ".yaml" ".json"}]
@@ -66,7 +70,7 @@
         (map keyword splits)
         splits))))
 
-(defn load-config
+(defn load-config*
   "Load a template-map config file from disk"
   [conf & cursor]
   (let [config (-> conf slurp (parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
@@ -87,10 +91,16 @@
     (apply merge-with deep-merge vals)
     (last vals)))
 
-(defn circle
+(defn config [] (template-map {}))
+
+(defn load-config
   "Load self referential configs from a directory, named by confs..."
-  ([] (template-map {}))
-  ([dir & confs]
-   (let [files (apply find-config-files dir confs)
-        configs (for [f files] (apply load-config f (config-to-cursor dir f)))]
-     (template-map (apply deep-merge configs)))))
+  [dir & confs]
+  (let [files (apply find-configs dir confs)
+       configs (for [f files] (apply load-config* f (config-to-cursor dir f)))]
+    (template-map (apply deep-merge configs))))
+
+(def ^:dynamic *oroboros-opts* {:keywords true})
+(defn set-java-opts! []
+  (alter-var-root #'oroboros.core/*oroboros-opts*
+    (constantly {:keywords false})))

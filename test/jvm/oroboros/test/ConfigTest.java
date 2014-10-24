@@ -28,9 +28,8 @@ public class ConfigTest {
     public void testOverride() {
         Config config = Config.load("./examples", "jerry");
         assertEquals("jerry & tom", config.get("simple", "name"));
-
-        config = config.set(Arrays.asList("simple", "cat"), "friends");
-        assertEquals("jerry & friends", config.get("simple", "name"));
+        config = config.set(Arrays.asList("simple", "cat"), "cheese");
+        assertEquals("jerry & cheese", config.get("simple", "name"));
     }
 
     @Test
@@ -53,7 +52,7 @@ public class ConfigTest {
     public void testHas() {
         Config config = Config.load("./examples");
         assertTrue(config.has("simple", "cat"));
-        assertFalse(config.has("wow", "this", "key"));
+        assertFalse(config.has("missing", "key"));
     }
 
     @Test

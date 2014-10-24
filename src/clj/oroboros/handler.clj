@@ -1,8 +1,8 @@
 (ns oroboros.handler
-  (:require [oroboros.core :refer [circle template-map find-config-names]]
+  (:require [oroboros.core :as config]
             [ring.util.response :as resp]
-            [clojure.data.json :as json]
             [compojure.core :refer :all]
+            [clojure.data.json :as json]
             [compojure.handler :as handler]
             [compojure.route :as route]))
 
@@ -16,10 +16,10 @@
   (GET "/" [] (resp/resource-response "index.html" {:root "public"}))
   (GET "/configs" [] {:status 200
                       :headers {"Content-Type" "application/json"}
-                      :body (json/write-str (find-config-names directory))})
+                      :body (json/write-str (config/find-names directory))})
   (GET "/q" {{:keys [var config]} :params}
     (let [var (if var (clojure.string/split var #"\.") [])
-          config (if config (circle directory config) (circle directory))
+          config (if config (config/load-config directory config) (config/load-config directory))
           config (if (empty? var) config (get-in-string-cursor config var))]
       (when config
         {:status 200

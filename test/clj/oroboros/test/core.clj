@@ -3,7 +3,7 @@
             [me.raynes.fs :as fs]
             [oroboros.core :refer :all]))
 
-(deftest test-circle
+(deftest test-config
 
   (testing "can template regular maps"
     (is (= {:x "foo" :y "foo"} (template-map {:x "foo" :y "{{ x }}"}))))
@@ -20,37 +20,29 @@
       (is (= {:foo {:bar "baz"}} (overlay x y)))))
 
   (testing "can find config names in a directory"
-    (is (= #{"jerry"} (find-config-names "./examples/simple"))))
+    (is (= #{"jerry"} (find-names "./examples/simple"))))
 
   (testing "can find config files in a directory"
     (is (= [(fs/file "./examples/simple/config.yaml")]
-           (find-config-files "./examples/simple")))
+           (find-configs "./examples/simple")))
 
     (is (= [(fs/file "./examples/simple/config.yaml")
             (fs/file "./examples/simple/jerry.yaml")]
-           (find-config-files "./examples/simple" "foobar" "jerry"))))
+           (find-configs "./examples/simple" "foobar" "jerry"))))
 
   (testing "can load config files as template maps"
-    (let [config (circle "./examples/simple" "jerry")]
+    (let [config (load-config "./examples/simple" "jerry")]
       (is (= {:cat "tom", :mouse "jerry", :name "jerry & tom"} config))))
-
-  (testing "can place loaded configs into a larger structure"
-    (is (= {:examples {:simple {:cat "tom", :mouse "jerry",
-                                :name "tom & jerry"}}}
-           (load-config "./examples/simple/config.yaml" :examples :simple))))
-
-  (testing "can turn directories into cursors"
-    (is ( = [:examples :simple] (config-to-cursor "." "./examples/simple/tom.yaml"))))
 
   (testing "can recursively load templated configs"
     (is (= {:web {:port 1337, :protocol "http", :host "web.example.com:1337",
                   :api, "http://web.example.com:1337/v/1.2.3",
                   :command "./bin/start --db db.example.com"}
             :db {:host "db.example.com"}, :version "1.2.3"}
-           (circle "./examples/advanced")))
+           (load-config "./examples/advanced")))
 
     (is (= {:web {:port 1337, :protocol "https", :host "expensive-server.example.com",
                   :api "https://expensive-server.example.com/v/1.2.3",
                   :command "./bin/start --db prod-db.example.com"},
             :db {:host "prod-db.example.com"}, :version "1.2.3"}
-           (circle "./examples/advanced" "production")))))
+           (load-config "./examples/advanced" "production")))))

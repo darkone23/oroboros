@@ -9,18 +9,18 @@ import java.util.List;
 
 public class Config {
 
-    final Associative circle;
+    final Associative config;
 
     public Config() {
         this(Config.empty());
     }
 
-    private Config(Associative circle) {
-        this.circle = circle;
+    private Config(Associative config) {
+        this.config = config;
     }
 
     public Object get(Object... keys) {
-        return Config.getIn(circle, Arrays.asList(keys));
+        return Config.getIn(config, Arrays.asList(keys));
     }
 
     public String getStr(Object... keys) {
@@ -40,11 +40,11 @@ public class Config {
     }
 
     public Config set(Object key, Object val) {
-        return new Config(circle.assoc(key, val));
+        return new Config(config.assoc(key, val));
     }
 
     public Config set(List keys, Object val) {
-        return new Config(Config.assocIn(circle, keys, val));
+        return new Config(Config.assocIn(config, keys, val));
     }
 
     public boolean has(Object... keys) {
@@ -52,45 +52,40 @@ public class Config {
     }
 
     public Config overlay(Config other) {
-        return new Config(Config.overlay(circle, other.circle));
+        return new Config(Config.overlay(config, other.config));
     }
 
     public boolean equals(Object other) {
-        return other instanceof Config && circle.equals(((Config) other).circle);
+        return other instanceof Config && config.equals(((Config) other).config);
     }
 
     public String toString() {
-        return circle.toString();
+        return config.toString();
     }
-
 
     // static methods below
 
-    private static IFn circlefn;
-    private static IFn overlayfn;
-    private static IFn templatefn;
-    private static IFn hashmap;
     private static IFn getfn;
     private static IFn setfn;
+    private static IFn loadfn;
+    private static IFn configfn;
+    private static IFn overlayfn;
 
     static {
-        hashmap = clojureFn("clojure.core", "hash-map");
         getfn = clojureFn("clojure.core", "get-in");
         setfn = clojureFn("clojure.core", "assoc-in");
-        circlefn = clojureFn("oroboros.core", "circle");
+        loadfn = clojureFn("oroboros.core", "load-config");
+        configfn = clojureFn("oroboros.core", "config");
         overlayfn = clojureFn("oroboros.core", "overlay");
-        templatefn = clojureFn("oroboros.core", "template-map");
         clojureFn("oroboros.core", "set-java-opts!").invoke();
     }
 
     public static Config load(String directory) {
-        return Config.load(directory, null);
+        return new Config((Associative) loadfn.invoke(directory));
     }
 
     public static Config load(String directory, String config) {
-        return (directory == null) ?
-                new Config((Associative) circlefn.invoke(directory)) :
-                new Config((Associative) circlefn.invoke(directory, config));
+        return new Config((Associative) loadfn.invoke(directory, config));
     }
 
     public static Config create() {
@@ -98,7 +93,7 @@ public class Config {
     }
 
     private static Associative empty() {
-        return (Associative) templatefn.invoke(hashmap.invoke());
+        return (Associative) configfn.invoke();
     }
 
     private static Object getIn(Associative obj, List keys) {
@@ -118,7 +113,7 @@ public class Config {
             Object require = RT.readString("(require '" + namespace + ")");
             clojure.lang.Compiler.eval(require);
         } catch (Exception e) {
-            System.err.println("Failed to load " + namespace + "/" + name + ":" + e.getMessage());
+            System.err.println(String.format("Failed to load %s/%s - %s", namespace, name, e.getMessage()));
         }
         return (IFn) RT.var(namespace, name).deref();
     }

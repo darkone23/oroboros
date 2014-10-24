@@ -58,10 +58,10 @@ You can use oroboros as a library for jvm langs, here, in clojure:
 ~~~clj
 (use 'oroboros.core)
 
-(circle "examples/simple")
+(load-config "examples/simple")
 ;; => {:cat "tom", :mouse "jerry", :name "tom & jerry"}
 
-(assoc (circle) :x "{{y}}" :y 23)
+(assoc (config) :x "{{y}}" :y 23)
 ;; => {:x "23" :y 23}
 ~~~
 

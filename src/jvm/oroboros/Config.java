@@ -59,7 +59,7 @@ public class Config {
             Object require = RT.readString("(require '" + namespace + ")");
             clojure.lang.Compiler.eval(require);
         } catch (Exception e) {
-            System.out.println("Failed to load " + namespace + "/" + name + ":" + e.getMessage());
+            System.err.println("Failed to load " + namespace + "/" + name + ":" + e.getMessage());
         }
         return (IFn) RT.var(namespace, name).deref();
     }

@@ -36,4 +36,20 @@ public class ConfigTest {
         assertEquals("jerry & friends", config.get("simple", "name"));
     }
 
+    @Test
+    public void testHas() {
+        Circle config = Config.load("./examples");
+        assertTrue(config.has("simple", "cat"));
+        assertFalse(config.has("wow", "this", "key"));
+    }
+
+    @Test
+    public void testGetTyped() {
+        Circle config = Config.load("./examples/advanced");
+        assertTrue(Config.empty().set("str", "str").getStr("str") instanceof String);
+        assertTrue(Config.empty().set("int", 1).getInt("int") instanceof Integer);
+        assertTrue(Config.empty().set("long", 100L).getLong("long") instanceof Long);
+        assertTrue(Config.empty().set("bool", true).getBool("bool") instanceof Boolean);
+    }
+
 }

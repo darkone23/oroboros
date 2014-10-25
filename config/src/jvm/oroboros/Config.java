@@ -35,6 +35,10 @@ public class Config {
         return (Long) get(keys);
     }
 
+    public List getList(Object... keys) {
+        return (List) get(keys);
+    }
+
     public Boolean getBool(Object... keys) {
         return (Boolean) get(keys);
     }
@@ -56,7 +60,7 @@ public class Config {
     }
 
     public void write(String path) {
-        Config.write(this, path);
+        Config.write(__config, path);
     }
 
     public boolean equals(Object other) {
@@ -84,8 +88,8 @@ public class Config {
     private static IFn overlayfn;
 
     static {
-        getfn = clojureFn("clojure.core", "get-in");
         setfn = clojureFn("clojure.core", "assoc-in");
+        getfn = clojureFn("oroboros.core", "type-aware-get-in");
         configfn = clojureFn("oroboros.core", "config");
         fromjsonfn = clojureFn("oroboros.core", "from-json");
         tojsonfn = clojureFn("oroboros.core", "to-json");
@@ -124,8 +128,8 @@ public class Config {
         return new Config((Associative) fetchfn.invoke(url, config));
     }
 
-    public static void write(Config config, String path) {
-        writefn.invoke(config, path);
+    public static void write(Associative obj, String path) {
+        writefn.invoke(obj, path);
     }
 
     private static Associative empty() {

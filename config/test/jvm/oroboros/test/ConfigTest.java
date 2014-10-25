@@ -20,13 +20,13 @@ public class ConfigTest {
 
     @Test
     public void testFromDisk() {
-        Config config = Config.load("./examples");
+        Config config = Config.load("../examples");
         assertEquals("tom & jerry", config.get("simple", "name"));
     }
 
     @Test
     public void testOverride() {
-        Config config = Config.load("./examples", "jerry");
+        Config config = Config.load("../examples", "jerry");
         assertEquals("jerry & tom", config.get("simple", "name"));
         config = config.set(Arrays.asList("simple", "cat"), "cheese");
         assertEquals("jerry & cheese", config.get("simple", "name"));
@@ -50,7 +50,7 @@ public class ConfigTest {
 
     @Test
     public void testHas() {
-        Config config = Config.load("./examples");
+        Config config = Config.load("../examples");
         assertTrue(config.has("simple", "cat"));
         assertFalse(config.has("missing", "key"));
     }

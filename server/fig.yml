@@ -2,6 +2,6 @@ oroboros:
   build: .
   command: java -jar /etc/oroboros/o.jar
   volumes:
-    - examples:/etc/oroboros/configs
+    - ../config/examples:/etc/oroboros/conf.d
   ports:
     - 8080:80

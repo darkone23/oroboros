@@ -39,6 +39,10 @@ public class Config {
         return (List) get(keys);
     }
 
+    public Config getConf(Object... keys) {
+        return new Config((Associative) get(keys));
+    }
+
     public Boolean getBool(Object... keys) {
         return (Boolean) get(keys);
     }
@@ -50,6 +54,7 @@ public class Config {
     public Config set(List keys, Object val) {
         return new Config(Config.assocIn(__config, keys, val));
     }
+
 
     public boolean has(Object... keys) {
         return get(keys) != null;

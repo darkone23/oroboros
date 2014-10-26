@@ -27,8 +27,15 @@
   [str vars]
   (stencil/render-string str vars :missing-var-fn :ignore))
 
-(def template-map
-  (partial mapstache/mapstache (mapstache/string-renderer mustache)))
+(def template-map*
+  (partial mapstache/mapstache
+    (reify matross.mapstache.IRender
+      (can-render? [self v] (and (string? v) (.contains v "{")))
+      (render [self template data] (mustache template data)))))
+
+(defn template-map
+  [m]
+  (if (instance? matross.mapstache.Mapstache m) m (template-map* m)))
 
 (defn config []
   "Special map that uses itself for the templating context of its string values"
@@ -106,7 +113,7 @@
   [conf & cursor]
   (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
     (if (empty? cursor) config
-        (assoc-in nil cursor config))))
+        (assoc-in (template-map {}) cursor config))))
 
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
@@ -126,7 +133,7 @@
   [dir & confs]
   (let [files (apply find-configs dir confs)
        configs (for [f files] (apply load-config* f (config-to-cursor dir f)))]
-    (template-map (apply deep-merge configs))))
+    (apply deep-merge configs)))
 
 (def ^:dynamic *oroboros-opts* {:keywords true})
 (defn set-java-opts! []

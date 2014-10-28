@@ -33,6 +33,14 @@ public class ConfigTest {
     }
 
     @Test
+    public void testTemplate() {
+        Config config = new Config().set("cat", "tom");
+        config = config.set("mouse", "jerry");
+        assertEquals("tom & jerry", config.template("{{ cat }} & {{ mouse }}"));
+    }
+
+
+    @Test
     public void testOverlay() {
         Config config = new Config().set("cat", "{{name}}");
         Config other = new Config().set("name", "tom");

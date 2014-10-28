@@ -60,6 +60,10 @@ public class Config {
         return get(keys) != null;
     }
 
+    public String template(String templateString) {
+        return Config.template(templateString, __config);
+    }
+
     public Config overlay(Config other) {
         return new Config(Config.overlay(__config, other.__config));
     }
@@ -85,6 +89,7 @@ public class Config {
     private static IFn getfn;
     private static IFn setfn;
     private static IFn configfn;
+    private static IFn templatefn;
     private static IFn fromjsonfn;
     private static IFn tojsonfn;
     private static IFn loadfn;
@@ -96,6 +101,7 @@ public class Config {
         setfn = clojureFn("clojure.core", "assoc-in");
         getfn = clojureFn("oroboros.core", "type-aware-get-in");
         configfn = clojureFn("oroboros.core", "config");
+        templatefn = clojureFn("oroboros.core", "mustache");
         fromjsonfn = clojureFn("oroboros.core", "from-json");
         tojsonfn = clojureFn("oroboros.core", "to-json");
         loadfn = clojureFn("oroboros.core", "load-config");
@@ -115,6 +121,10 @@ public class Config {
 
     public static Config create() {
         return new Config();
+    }
+
+    public static String template(String templateString, Associative config) {
+        return (String) templatefn.invoke(templateString, config);
     }
 
     public static Config fromJson(String json) {

@@ -35,11 +35,13 @@
       (is (= {:cat "tom", :mouse "jerry", :name "jerry & tom"} config))))
 
   (testing "can recursively load templated configs"
-    (is (= {:web {:port 1337, :protocol "http", :host "web.example.com:1337",
-                  :api, "http://web.example.com:1337/v/1.2.3",
-                  :command "./bin/start --db db.example.com"}
-            :db {:host "db.example.com"}, :version "1.2.3"}
-           (load-config "../examples/advanced")))
+    (is (= {:advanced {:web {:port 1337, :protocol "http", :host "web.example.com:1337",
+                       :api, "http://web.example.com:1337/v/1.2.3",
+                       :command "./bin/start --db db.example.com"}
+                       :db {:host "db.example.com"},
+                       :version "1.2.3"}
+            :simple {:cat "tom", :mouse "jerry", :name "tom & jerry"}}
+           (load-config "../examples")))
 
     (is (= {:web {:port 1337, :protocol "https", :host "expensive-server.example.com",
                   :api "https://expensive-server.example.com/v/1.2.3",

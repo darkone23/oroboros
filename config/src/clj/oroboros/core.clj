@@ -108,12 +108,12 @@
         (map keyword splits)
         splits))))
 
-(defn load-config*
-  "Load a template-map config file from disk"
+(defn load-untemplated-config*
+  "Load a config file from disk"
   [conf & cursor]
-  (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)) template-map)]
+  (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)))]
     (if (empty? cursor) config
-        (assoc-in (template-map {}) cursor config))))
+        (assoc-in {} cursor config))))
 
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
@@ -132,8 +132,10 @@
   "Load self referential configs from a directory, named by confs..."
   [dir & confs]
   (let [files (apply find-configs dir confs)
-       configs (for [f files] (apply load-config* f (config-to-cursor dir f)))]
-    (apply deep-merge configs)))
+       configs (for [f files] (apply load-untemplated-config* f (config-to-cursor dir f)))]
+    (clojure.walk/postwalk
+      (fn [v] (if (map? v) (template-map v) v))
+      (apply deep-merge configs))))
 
 (def ^:dynamic *oroboros-opts* {:keywords true})
 (defn set-java-opts! []

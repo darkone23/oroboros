@@ -8,6 +8,10 @@
   (testing "can template regular maps"
     (is (= {:x "foo" :y "foo"} (template-map {:x "foo" :y "{{ x }}"}))))
 
+  (testing "templating resolves to nearest ancestor"
+    (let [m {:x 1 :y {:x 2, :y "{{ x }}"}}]
+      (is (= "2" (get-in (template-map m) [:y :y])))))
+
   (testing "can template across several contexts"
     (let [m (template-map {:y "{{x}}"})]
       (is (= {:y "{{x}}"} m))

@@ -33,9 +33,15 @@
       (can-render? [self v] (and (string? v) (.contains v "{")))
       (render [self template data] (mustache template data)))))
 
+(defn mapstache? [m]
+  (instance? matross.mapstache.Mapstache m))
+
 (defn template-map
   [m]
-  (if (instance? matross.mapstache.Mapstache m) m (template-map* m)))
+  (if (mapstache? m) m
+    (clojure.walk/postwalk
+      (fn [v] (if (and (map? v) (not (mapstache? v)))
+                (template-map* v) v)) m)))
 
 (defn config []
   "Special map that uses itself for the templating context of its string values"
@@ -108,7 +114,7 @@
         (map keyword splits)
         splits))))
 
-(defn load-untemplated-config*
+(defn load-config*
   "Load a config file from disk"
   [conf & cursor]
   (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)))]
@@ -132,10 +138,8 @@
   "Load self referential configs from a directory, named by confs..."
   [dir & confs]
   (let [files (apply find-configs dir confs)
-       configs (for [f files] (apply load-untemplated-config* f (config-to-cursor dir f)))]
-    (clojure.walk/postwalk
-      (fn [v] (if (map? v) (template-map v) v))
-      (apply deep-merge configs))))
+       configs (for [f files] (apply load-config* f (config-to-cursor dir f)))]
+    (template-map (apply deep-merge configs))))
 
 (def ^:dynamic *oroboros-opts* {:keywords true})
 (defn set-java-opts! []

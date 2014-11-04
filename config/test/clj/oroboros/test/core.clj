@@ -10,12 +10,12 @@
 
   (testing "templating resolves to nearest ancestor"
     (let [m {:x 1 :y {:x 2, :y "{{ x }}"}}]
-      (is (= "2" (get-in (template-map m) [:y :y])))))
+      (is (= 2 (get-in (template-map m) [:y :y])))))
 
   (testing "can template across several contexts"
     (let [m (template-map {:y "{{x}}"})]
       (is (= {:y "{{x}}"} m))
-      (is (= {:x 23 :sub {:y "23"}}
+      (is (= {:x 23 :sub {:y 23}}
              (assoc (template-map {:x 23}) :sub m)))))
 
   (testing "can overlay one context onto another"

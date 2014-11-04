@@ -7,17 +7,19 @@
             [stencil.core :as stencil]))
 
 (defn type-aware-get-in
-  ([m ks] (type-aware-get-in m ks nil))
-  ([m ks not-found]
-   (if-let [k (first ks)]
-     (if (sequential? m)
-       (if (and (>= k 0) (< k (count m)))
-         (recur (nth m k not-found) (rest ks) not-found)
-         not-found)
-       (if (contains? m k)
-         (recur (get m k not-found) (rest ks) not-found)
-         not-found))
-     m)))
+  ([x ks] (type-aware-get-in x ks nil))
+  ([x ks not-found]
+     (if-let [k (first ks)]
+       (cond
+        (sequential? x)
+        (if (<= 0 (inc k) (count x))
+          (recur (nth x k not-found) (rest ks) not-found)
+          not-found)
+        (associative? x)
+        (if (contains? x k)
+          (recur (get x k not-found) (rest ks) not-found)
+          not-found))
+       x)))
 
 (declare ^:dynamic *oroboros-opts*)
 (def default-name "config")
@@ -27,11 +29,29 @@
   [str vars]
   (stencil/render-string str vars :missing-var-fn :ignore))
 
+(defn cursor-guess
+  "take a best guess at what to do for the given type"
+  [x]
+  (try (Integer/parseInt x)
+       (catch Exception e
+         (if (:keywords *oroboros-opts*)
+           (keyword x) x))))
+
+(defn extract-cursor
+  "attempt to extract a cursor from a str"
+  [template]
+  (if-let [match (second (re-find #"^\{\{\s*([^\s]+)\s*\}\}$" template))]
+    (let [parts (clojure.string/split match #"\.")]
+      (map cursor-guess parts))))
+
 (def template-map*
   (partial mapstache/mapstache
     (reify matross.mapstache.IRender
       (can-render? [self v] (and (string? v) (.contains v "{")))
-      (render [self template data] (mustache template data)))))
+      (render [self template data]
+        (if-let [cursor (extract-cursor template)]
+          (type-aware-get-in data cursor template)
+          (mustache template data))))))
 
 (defn mapstache? [m]
   (instance? matross.mapstache.Mapstache m))

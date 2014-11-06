@@ -37,19 +37,20 @@
          (if (:keywords *oroboros-opts*)
            (keyword x) x))))
 
-(defn extract-cursor
+(defn extract-token [s]
+  "attempt to extract a token from a str"
+  (second (re-find #"^\{\{\s*([^\s]+)\s*\}\}$" s)))
+
+(defn extract-cursor [s]
   "attempt to extract a cursor from a str"
-  [template]
-  (if-let [match (second (re-find #"^\{\{\s*([^\s]+)\s*\}\}$" template))]
-    (let [parts (clojure.string/split match #"\.")]
-      (map cursor-guess parts))))
+  (when s (map cursor-guess (clojure.string/split s #"\."))))
 
 (def template-map*
   (partial mapstache/mapstache
     (reify matross.mapstache.IRender
       (can-render? [self v] (and (string? v) (.contains v "{")))
       (render [self template data]
-        (if-let [cursor (extract-cursor template)]
+        (if-let [cursor (-> template extract-token extract-cursor)]
           (type-aware-get-in data cursor template)
           (mustache template data))))))
 
@@ -74,7 +75,7 @@
   (let [keyfn (if (:keywords *oroboros-opts*) keyword identity)]
     (template-map (json/read-str str :key-fn keyfn))))
 
-(defn to-json [conf] (json/write-str conf))
+(defn to-json [conf] (json/write-str (into (sorted-map) conf)))
 
 (defn write-config [conf path]
   (let [path (fs/expand-home path)

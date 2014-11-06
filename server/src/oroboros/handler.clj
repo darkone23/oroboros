@@ -8,23 +8,20 @@
 
 (def directory ".")
 
-(defn get-in-string-cursor
-  [coll cursor]
-  (get-in coll (map keyword cursor)))
+(defn json-ok [body]
+  (let [body (if (associative? body) (into (sorted-map) body) body)]
+    {:status 200
+     :headers {"Content-Type" "application/json"}
+     :body (json/write-str body)}))
 
 (defroutes app-routes
   (GET "/" [] (resp/resource-response "index.html" {:root "public"}))
-  (GET "/configs" [] {:status 200
-                      :headers {"Content-Type" "application/json"}
-                      :body (json/write-str (config/find-names directory))})
-  (GET "/q" {{:keys [var config]} :params}
-    (let [var (if var (clojure.string/split var #"\.") [])
-          config (if config (config/load-config directory config) (config/load-config directory))
-          config (if (empty? var) config (get-in-string-cursor config var))]
-      (when config
-        {:status 200
-         :headers {"Content-Type" "application/json"}
-         :body (json/write-str config)})))
+  (GET "/configs" [] (json-ok (config/find-names directory)))
+  (GET "/q" {{:keys [config var] :or {config "config"}} :params}
+    (let [cursor (if var (config/extract-cursor var) [])
+          config (config/load-config directory config)]
+      (if-let [conf (config/type-aware-get-in config cursor)]
+        (json-ok conf))))
   (route/resources "/")
   (route/not-found "Not Found"))
 

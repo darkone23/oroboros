@@ -11,7 +11,7 @@
                  [me.raynes/fs "1.4.6"]
                  [circleci/clj-yaml "0.5.3"]
                  [eggsby/stencil "0.3.4-eggsby"]
-                 [matross/mapstache "0.3.3-SNAPSHOT"]]
+                 [matross/mapstache "0.3.3"]]
   :plugins [[lein-junit "1.1.2"]]
   :profiles
   {:dev {:dependencies [[junit/junit "4.11"]]}})

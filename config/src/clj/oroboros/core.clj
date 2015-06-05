@@ -1,7 +1,6 @@
 (ns oroboros.core
   (:require [matross.mapstache :as mapstache]
             [me.raynes.fs :as fs]
-            [clj-http.client :as client]
             [clojure.data.json :as json]
             [clj-yaml.core :as yaml]
             [stencil.core :as stencil]))
@@ -82,15 +81,6 @@
         path (if (fs/directory? path) (fs/file path "config.json") (fs/file path))]
     (fs/mkdirs (fs/parent path))
     (spit path (to-json conf))))
-
-(defn fetch-config
-  ([url]
-    (fetch-config url default-name))
-  ([url config]
-    (let [url (str "http://" url "/q")
-          opts {:query-params {:config config}}
-          res (client/get url opts)]
-      (from-json (:body res)))))
 
 (defn sort-configs
   [confs xs]

@@ -94,7 +94,6 @@ public class Config {
     private static IFn tojsonfn;
     private static IFn loadfn;
     private static IFn writefn;
-    private static IFn fetchfn;
     private static IFn overlayfn;
 
     static {
@@ -106,7 +105,6 @@ public class Config {
         tojsonfn = clojureFn("oroboros.core", "to-json");
         loadfn = clojureFn("oroboros.core", "load-config");
         writefn = clojureFn("oroboros.core", "write-config");
-        fetchfn = clojureFn("oroboros.core", "fetch-config");
         overlayfn = clojureFn("oroboros.core", "overlay");
         clojureFn("oroboros.core", "set-java-opts!").invoke();
     }
@@ -133,14 +131,6 @@ public class Config {
 
     public static String toJson(Associative config) {
         return (String) tojsonfn.invoke(config);
-    }
-
-    public static Config fetch(String url) {
-        return new Config((Associative) fetchfn.invoke(url));
-    }
-
-    public static Config fetch(String url, String config) {
-        return new Config((Associative) fetchfn.invoke(url, config));
     }
 
     public static void write(Associative obj, String path) {

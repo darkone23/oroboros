@@ -5,6 +5,19 @@
             [clj-yaml.core :as yaml]
             [stencil.core :as stencil]))
 
+(declare ^:dynamic *oroboros-opts*)
+(def default-name "config")
+
+(defn extract-ns [k]
+  (if (keyword? k)
+    (namespace k)
+    (last (re-find #"(.+)\/[^\s+]") k)))
+
+(defn mustache
+  "Use stencil for our mustache impl"
+  [str vars]
+  (stencil/render-string str vars :missing-var-fn :ignore))
+
 (defn type-aware-get-in
   ([x ks] (type-aware-get-in x ks nil))
   ([x ks not-found]
@@ -19,14 +32,6 @@
           (recur (get x k not-found) (rest ks) not-found)
           not-found))
        x)))
-
-(declare ^:dynamic *oroboros-opts*)
-(def default-name "config")
-
-(defn mustache
-  "Use stencil for our mustache impl"
-  [str vars]
-  (stencil/render-string str vars :missing-var-fn :ignore))
 
 (defn cursor-guess
   "take a best guess at what to do for the given type"
@@ -44,14 +49,51 @@
   "attempt to extract a cursor from a str"
   (when s (map cursor-guess (clojure.string/split s #"\."))))
 
+(defn env-replace-template [s]
+  (clojure.string/replace
+   s #"\{\{\s*env\/([^\s]+)\s*\}\}" "{{ __ENV__.$1 }}"))
+
+(defn replace-dots [s]
+  (clojure.string/replace s #"\." "__"))
+
+(defn props-replace-template [s]
+  (clojure.string/replace
+   s #"\{\{\s*props\/([^\s]+)\s*\}\}"
+   (fn [[matched s]]
+     (str "{{ __PROPS__." (replace-dots s) " }}"))))
+
+
+(defn getenv* []
+  (let [env (into {} (System/getenv))]
+    (if (:keywords *oroboros-opts*)
+      (clojure.walk/keywordize-keys env) env)))
+
+(defn getprops* []
+  (let [props (into {} (map (fn [[k v]] [(replace-dots k) v]) (System/getProperties)))]
+    (if (:keywords *oroboros-opts*)
+      (clojure.walk/keywordize-keys props) props)))
+
+(def getenv (memoize getenv*))
+(def getprops (memoize getprops*))
+
+(defn prepare-data [data]
+  (assoc data
+    :__ENV__ (getenv)
+    :__PROPS__ (getprops)))
+
+(defn prepare-template [str]
+  (props-replace-template (env-replace-template str)))
+
 (def template-map*
   (partial mapstache/mapstache
     (reify matross.mapstache.IRender
       (can-render? [self v] (and (string? v) (.contains v "{")))
       (render [self template data]
-        (if-let [cursor (-> template extract-token extract-cursor)]
-          (type-aware-get-in data cursor template)
-          (mustache template data))))))
+        (let [data (prepare-data data)
+              template (prepare-template template)]
+          (if-let [cursor (-> template extract-token extract-cursor)]
+            (type-aware-get-in data cursor template)
+            (mustache template data)))))))
 
 (defn mapstache? [m]
   (instance? matross.mapstache.Mapstache m))

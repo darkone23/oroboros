@@ -18,11 +18,19 @@
       (is (= {:x 23 :sub {:y 23}}
              (assoc (template-map {:x 23}) :sub m)))))
 
+  (testing "supports env var template values"
+    (let [m (template-map {:pwd "{{ env/PWD }}"})]
+      (is (= {:pwd (System/getenv "PWD")} m))))
+  
+  (testing "supports system properties"
+    (let [m (template-map {:tmp "{{ props/java.io.tmpdir }}"})]
+      (is (= {:tmp (System/getProperty "java.io.tmpdir")} m))))
+  
   (testing "can overlay one context onto another"
     (let [x (template-map {:foo [{:bar "{{ x }}"}]})
           y {:x "baz"}]
       (is (= {:foo [{:bar "baz"}]} (overlay x y)))))
-
+  
   (testing "can find config names in a directory"
     (is (= #{"jerry"} (find-names "../examples/simple"))))
 

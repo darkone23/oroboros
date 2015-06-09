@@ -1,0 +1,10 @@
+port: 1337
+protocol: http
+host: 'web.example.com:{{ port }}'
+
+# here 'protocol' and 'host' are replaced locally
+# but since 'version' doesnt resolve locally it is replaced globally
+api: '{{ protocol }}://{{ host }}/v/{{ version }}'
+
+# using the global context you can reach into other namespaces
+command: ./bin/start --db {{ db.host }}

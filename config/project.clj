@@ -7,10 +7,12 @@
   :aot :all
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/data.json "0.2.5"]
+                 [cpath-clj "0.1.2"]
                  [me.raynes/fs "1.4.6" :exclusions [org.apache.commons/commons-compress]]
                  [circleci/clj-yaml "0.5.3"]
                  [eggsby/stencil "0.3.4-eggsby"]
                  [matross/mapstache "0.3.3"]]
-  :plugins [[lein-junit "1.1.2"]]
+  :plugins [[lein-junit "1.1.8"]]
   :profiles
-  {:dev {:dependencies [[junit/junit "4.11"]]}})
+  {:dev {:resource-paths ["test/fixtures"]
+         :dependencies [[junit/junit "4.11"]]}})

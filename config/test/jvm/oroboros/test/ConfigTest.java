@@ -39,7 +39,6 @@ public class ConfigTest {
         assertEquals("tom & jerry", config.template("{{ cat }} & {{ mouse }}"));
     }
 
-
     @Test
     public void testOverlay() {
         Config config = new Config().set("cat", "{{name}}");
@@ -59,6 +58,13 @@ public class ConfigTest {
     @Test
     public void testHas() {
         Config config = Config.load("../examples");
+        assertTrue(config.has("simple", "cat"));
+        assertFalse(config.has("missing", "key"));
+    }
+
+    @Test
+    public void testResource() {
+        Config config = Config.resource("examples");
         assertTrue(config.has("simple", "cat"));
         assertFalse(config.has("missing", "key"));
     }

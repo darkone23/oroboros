@@ -42,6 +42,23 @@
             (fs/file "../examples/simple/jerry.yaml")]
            (find-configs "../examples/simple" "foobar" "jerry"))))
 
+  (defn get-uris [& files]
+    (map #(.toURI (clojure.java.io/resource %) ) files))
+  
+  (testing "can find config files on the classpath"
+    (is (= (get-uris "examples/simple/config.yaml")
+           (find-configs-from-classpath "examples/simple")))
+    (is (= (get-uris "examples/simple/config.yaml" "examples/simple/jerry.yaml")
+           (find-configs-from-classpath "examples/simple" "jerry"))))
+
+  (testing "can get a cursor for a file"
+    (let [f (fs/file "../examples/simple/config.yaml")]
+      (is (= [:simple] (config-to-cursor "../examples" f)))))
+  
+  (testing "can get a cursor for a resource uri"
+    (let [uri (clojure.java.io/resource "examples/simple/config.yaml")]
+      (is (= [:simple] (resource-to-cursor "examples" uri)))))
+  
   (testing "can load config files as template maps"
     (let [config (load-config "../examples/simple" "jerry")]
       (is (= {:cat "tom", :mouse "jerry", :name "jerry & tom"} config))))
@@ -59,4 +76,8 @@
                   :api "https://expensive-server.example.com/v/1.2.3",
                   :command "./bin/start --db prod-db.example.com"},
             :db {:host "prod-db.example.com"}, :version "1.2.3"}
-           (load-config "../examples/advanced" "production")))))
+           (load-config "../examples/advanced" "production"))))
+
+  (testing "resources and filesystem configs are equivalent"
+    (is (= (load-config "../examples/advanced" "production")
+           (resource-config "examples/advanced" "production")))))

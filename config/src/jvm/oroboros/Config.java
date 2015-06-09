@@ -93,6 +93,7 @@ public class Config {
     private static IFn fromjsonfn;
     private static IFn tojsonfn;
     private static IFn loadfn;
+    private static IFn resourcefn;
     private static IFn writefn;
     private static IFn overlayfn;
 
@@ -104,6 +105,7 @@ public class Config {
         fromjsonfn = clojureFn("oroboros.core", "from-json");
         tojsonfn = clojureFn("oroboros.core", "to-json");
         loadfn = clojureFn("oroboros.core", "load-config");
+        resourcefn = clojureFn("oroboros.core", "resource-config");
         writefn = clojureFn("oroboros.core", "write-config");
         overlayfn = clojureFn("oroboros.core", "overlay");
         clojureFn("oroboros.core", "set-java-opts!").invoke();
@@ -115,6 +117,14 @@ public class Config {
 
     public static Config load(String directory, String config) {
         return new Config((Associative) loadfn.invoke(directory, config));
+    }
+
+    public static Config resource(String directory) {
+        return new Config((Associative) resourcefn.invoke(directory));
+    }
+
+    public static Config resource(String directory, String config) {
+        return new Config((Associative) resourcefn.invoke(directory, config));
     }
 
     public static Config create() {

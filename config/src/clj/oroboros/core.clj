@@ -1,5 +1,7 @@
 (ns oroboros.core
-  (:require [matross.mapstache :as mapstache]
+  (:require [clojure.java.io :as io]
+            [cpath-clj.core :as cp]
+            [matross.mapstache :as mapstache]
             [me.raynes.fs :as fs]
             [clojure.data.json :as json]
             [clj-yaml.core :as yaml]
@@ -110,7 +112,7 @@
   (template-map {}))
 
 (defn default? [f]
-  (re-matches (re-pattern (str default-name ".*")) f))
+  (re-matches (re-pattern (str default-name ".*")) (str f)))
 
 (defn from-json [str]
   (let [keyfn (if (:keywords *oroboros-opts*) keyword identity)]
@@ -124,12 +126,26 @@
     (fs/mkdirs (fs/parent path))
     (spit path (to-json conf))))
 
+(defn extract-filename [x]
+  (last (re-find #"([^\/]+)\..+$" (str x))))
+
 (defn sort-configs
   [confs xs]
   (let [sortfn (fn [f]
-                 (let [name (first (fs/split-ext f))]
+                 (let [name (extract-filename f)]
                    (if (default? f) -1 (.indexOf confs name))))]
     (sort-by sortfn xs)))
+
+(defn find-configs-from-classpath [dir & confs]
+  (let [exts ["yml" "yaml" "json"]
+        confs (cons default-name confs)
+        names (into #{} (for [conf confs ext exts] (str conf "." ext)))]
+    (if-let [resource (io/resource dir)]
+      (let [xs (mapcat second (cp/resources resource))
+            f (fn [path]
+                (names (last (clojure.string/split (str path) (re-pattern java.io.File/separator)))))
+            res (filter f xs)]
+        (sort-configs confs res)))))
 
 (defn find-configs
   "return the paths to configs named by the directory"
@@ -153,19 +169,28 @@
                    (and (exts ext) (not= name default-name)))]
        (first (fs/split-ext config))))))
 
+(defn split* [str]
+  (let [splits (clojure.string/split str (re-pattern java.io.File/separator))]
+    (if (:keywords *oroboros-opts*)
+      (map keyword splits)
+      splits)))
+
 (defn config-to-cursor
   "~/dir, ~/dir/foo/bar/baz.txt => ['foo' 'bar']"
-  [dir conf]
+  [dir path]
   (let [dir (-> dir fs/expand-home fs/normalized .getAbsolutePath)
-        conf (-> conf fs/expand-home fs/normalized fs/parent .getAbsolutePath)
-        file-part (subs conf (count dir))
-        splits (clojure.string/split
-                (apply str (rest file-part))
-                (re-pattern java.io.File/separator))]
+        conf (-> path fs/expand-home fs/normalized fs/parent .getAbsolutePath)
+        file-part (subs conf (count dir))]
     (if (= file-part "") []
-      (if (:keywords *oroboros-opts*)
-        (map keyword splits)
-        splits))))
+      (split* (apply str (rest file-part))))))
+
+(defn resource-to-cursor
+  [dir uri]
+  (let [dir (io/resource dir)
+        dir (if (= (type dir) java.net.URL) (.toURI dir) dir)
+        uri (if (= (type uri) java.net.URL) (.toURI uri) uri)
+        rel (str (.relativize dir uri))]
+    (butlast (split* rel))))
 
 (defn load-config*
   "Load a config file from disk"
@@ -187,12 +212,15 @@
   (let [ks (keys self)]
     (select-keys (merge self other) ks)))
 
-(defn load-config
-  "Load self referential configs from a directory, named by confs..."
-  [dir & confs]
-  (let [files (apply find-configs dir confs)
-       configs (for [f files] (apply load-config* f (config-to-cursor dir f)))]
-    (template-map (apply deep-merge configs))))
+(defn get-config-fn
+  [load-fn cursor-fn]
+  (fn [dir & confs]
+    (let [files (apply load-fn dir confs)
+          configs (for [f files] (apply load-config* f (cursor-fn dir f)))]
+      (template-map (apply deep-merge configs)))))
+
+(def load-config (get-config-fn find-configs config-to-cursor))
+(def resource-config (get-config-fn find-configs-from-classpath resource-to-cursor))
 
 (def ^:dynamic *oroboros-opts* {:keywords true})
 (defn set-java-opts! []

@@ -1,0 +1,3 @@
+cat: tom
+mouse: jerry
+name: '{{ cat }} & {{ mouse }}'

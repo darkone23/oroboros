@@ -79,9 +79,11 @@
 (def getprops (memoize getprops*))
 
 (defn prepare-data [data]
-  (assoc data
-    :__ENV__ (getenv)
-    :__PROPS__ (getprops)))
+  (let [env (if (:keywords *oroboros-opts*) :__ENV__ "__ENV__")
+        props (if (:keywords *oroboros-opts*) :__PROPS__ "__PROPS__")]
+    (assoc data
+      env (getenv)
+      props (getprops))))
 
 (defn prepare-template [str]
   (props-replace-template (env-replace-template str)))

@@ -120,7 +120,8 @@
   (let [keyfn (if (:keywords *oroboros-opts*) keyword identity)]
     (template-map (json/read-str str :key-fn keyfn))))
 
-(defn to-json [conf] (json/write-str (into (sorted-map) conf)))
+(defn to-json [conf]
+  (json/write-str (into (sorted-map) conf)))
 
 (defn write-config [conf path]
   (let [path (fs/expand-home path)
@@ -177,24 +178,28 @@
       (map keyword splits)
       splits)))
 
+(defn str-to-cursor
+  [a b]
+  (let [file-part (subs b (count a))]
+    (if (= file-part "") []
+      (split* (apply str (rest file-part))))))
+
 (defn config-to-cursor
   "~/dir, ~/dir/foo/bar/baz.txt => ['foo' 'bar']"
   [dir path]
   (let [dir (-> dir fs/expand-home fs/normalized .getAbsolutePath)
-        conf (-> path fs/expand-home fs/normalized fs/parent .getAbsolutePath)
-        file-part (subs conf (count dir))]
-    (if (= file-part "") []
-      (split* (apply str (rest file-part))))))
+        conf (-> path fs/expand-home fs/normalized fs/parent .getAbsolutePath)]
+    (str-to-cursor dir conf)))
 
 (defn resource-to-cursor
   [dir uri]
   (let [dir (io/resource dir)
-        dir (if (= (type dir) java.net.URL) (.toURI dir) dir)
-        uri (if (= (type uri) java.net.URL) (.toURI uri) uri)
-        rel (str (.relativize dir uri))]
-    (butlast (split* rel))))
+        dir (.normalize (if (= (type dir) java.net.URL) (.toURI dir) dir))
+        uri (.normalize (if (= (type uri) java.net.URL) (.toURI uri) uri))
+        without-filename (clojure.string/replace uri #"\/[^\/.]+\.[^\/.]+$" "")]
+    (str-to-cursor (.toString dir) without-filename)))
 
-(defn load-config*
+(defn load-untemplated-config*
   "Load a config file from disk"
   [conf & cursor]
   (let [config (-> conf slurp (yaml/parse-string :keywords (:keywords *oroboros-opts*)))]
@@ -218,8 +223,9 @@
   [load-fn cursor-fn]
   (fn [dir & confs]
     (let [files (apply load-fn dir confs)
-          configs (for [f files] (apply load-config* f (cursor-fn dir f)))]
-      (template-map (apply deep-merge configs)))))
+          configs (for [f files] (apply load-untemplated-config* f (cursor-fn dir f))) 
+          merged (apply deep-merge configs)]
+      (template-map merged))))
 
 (def load-config (get-config-fn find-configs config-to-cursor))
 (def resource-config (get-config-fn find-configs-from-classpath resource-to-cursor))
